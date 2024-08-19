@@ -1,0 +1,20 @@
+START TRANSACTION;
+
+-- Mettre à jour le statut des commandes à "trash"
+UPDATE `wp_wc_orders`
+SET `status` = 'trash'
+WHERE `date_created_gmt` < '2024-06-20 00:00:00';
+
+-- Suppression des commandes dans les différentes tables en utilisant les IDs sélectionnés
+DELETE FROM `wp_wc_orders_meta` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_addresses` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_coupon_lookup` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_operational_data` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_product_lookup` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_stats` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+DELETE FROM `wp_wc_order_tax_lookup` WHERE `order_id` IN (SELECT `id` FROM `wp_wc_orders` WHERE `status` = 'trash');
+
+-- Suppression des commandes dans la table principale après avoir supprimé les dépendances
+DELETE FROM `wp_wc_orders` WHERE `status` = 'trash';
+
+COMMIT;
